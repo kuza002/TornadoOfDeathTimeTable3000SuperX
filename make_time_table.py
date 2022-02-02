@@ -9,8 +9,28 @@ import numpy as np
 
 days_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 times = ['8.30-10.00', '10.10-11.40', '11.50-13.20', '14.00-15.30', '15.40-17.10', '17.50-19.20']
+our_classrooms = ['802','804','808','809','810','811','910','1009', '1111', '1112', '1206']
+classrooms_columns = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
 good_color = 'ccffcc'
 bad_color = 'ffadd6'
+
+
+def paint_cells(sheet, lessons, color, magic_var, column):
+    for lesson in lessons:
+
+        dw_index = days_of_week.index(lesson.day_of_week)
+
+        time_index = times.index(lesson.duration)
+
+        lesson_row = magic_var[dw_index] + time_index * 2
+
+        if 'н/н' in lesson.cell.value:
+            sheet[column + str(lesson_row)].fill = PatternFill("solid", start_color=color)
+        elif 'ч/н' in lesson.cell.value:
+            sheet[column + str(lesson_row + 1)].fill = PatternFill("solid", start_color=color)
+        else:
+            sheet[column + str(lesson_row)].fill = PatternFill("solid", start_color=color)
+            sheet[column + str(lesson_row + 1)].fill = PatternFill("solid", start_color=color)
 
 # Get data from timetable
 # data = Parser()
@@ -49,9 +69,11 @@ group_coord = 'C'
 wb = openpyxl.load_workbook(out_file)
 sheet = wb['Расписание лаборантов 21-22 1се']
 
+# Create table for workers
+print("Start generate table for workers")
+
 for group, lessons in all_lessons.items():
     sheet[group_coord + "2"] = group
-
     for lesson in lessons:
         dw_index = days_of_week.index(lesson.day_of_week)
 
@@ -68,5 +90,17 @@ for group, lessons in all_lessons.items():
             sheet[group_coord + str(lesson_row + 1)].fill = PatternFill("solid", start_color=bad_color)
 
     group_coord = chr(ord(group_coord) + 1)
+
+print("Table for worker is done")
+print("Start create table by classroom")
+
+all_lessons_by_classroom = data.get_lessons_by_classrooms(our_classrooms)
+
+magic_var = np.array([i for i in range(4, 76, 14)])
+
+for classroom, lessons in all_lessons_by_classroom.items():
+    classroom_index = our_classrooms.index(classroom)
+    column = classrooms_columns[classroom_index]
+    paint_cells(wb[wb.sheetnames[0]], lessons, good_color, magic_var, column)
 
 wb.save(out_file)

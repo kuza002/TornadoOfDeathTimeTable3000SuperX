@@ -11,6 +11,7 @@ list_day_of_week = ["понедельник", "вторник", "среда", "�
 patter_to_define_time = r'^(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])-(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])$'
 
 
+
 def write_in_file(path, var):
     with open(path, 'a') as file:
         file.write(var)
@@ -39,7 +40,7 @@ def get_column_from_coordinate(coord):
 
 def get_class_number_from_cell(text):
     try:
-        return re.search(pattern_to_finde_class_number, text).group(1)
+        return re.search(pattern_to_finde_class_number, text).group(1).strip().lower()
     except:
         return None
 
@@ -62,14 +63,6 @@ def get_day_of_week(coord, dw_rows):
         return "пн"
 
     return day_of_week
-
-
-def get_tabletime_for_classrums(class_numbers, data):
-    classrums = []
-    for i in data:
-        tmp = get_class_number_from_cell(i.value)
-        if tmp in class_numbers:
-            classrums.append(i)
 
 
 def get_duration(coordinate, time_rows):
@@ -204,9 +197,19 @@ class Parser:
             for lesson in self.lessons:
                 if lesson.group_number == group:
                     lessons_of_group.append(lesson)
-
+            return lessons_of_group
         else:
             print(f"\nГруппа {group} не найдена")
             exit(400)
 
-        return lessons_of_group
+    def get_lessons_by_classrooms(self, class_numbers):
+        classrooms = {}
+        for lesson in self.lessons:
+            classroom = get_class_number_from_cell(lesson.cell.value)
+            if classroom in class_numbers:
+                if classroom in classrooms.keys():
+                    classrooms[classroom].append(lesson)
+                else:
+                    classrooms[classroom] = []
+        return classrooms
+
