@@ -1,5 +1,6 @@
 from openpyxl import load_workbook
 import re
+from Entitys import Lesson
 
 # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
 pattern_to_finde_class_number = r'ауд. (\d+)'
@@ -36,7 +37,7 @@ def get_class_number_from_cell(text):
         return None
 
 
-def day_of_week_by_coordinate(coord, dw_rows):
+def get_day_of_week(coord, dw_rows):
     row = int(get_row_from_coordinate(coord))
     day_of_week = ""
 
@@ -64,14 +65,30 @@ def get_tabletime_for_classrums(class_numbers, data):
             classrums.append(i)
 
 
+def get_duration(coordinate, time_rows):
+    row = get_row_from_coordinate(coordinate.coordinate)
+    for key, value in time_rows.items():
+        if key == row or key == str(int(row) - 1):
+            return value
+    print("Failed to find row with time")
+    return None
+
+
 class Parser:
+
+    def get_group_number(self, cell, groups_columns):
+
+        for key, value in groups_columns.items():
+            if get_column_from_coordinate(cell.coordinate) == value:
+                return key
+
     def __init__(self):
 
         # Get workbook
         wb = load_workbook('file.xlsx')
 
         # Get active page
-        sheet = wb.active
+        self.sheet = wb.active
 
         # Get data from sheet
         data = []
@@ -80,7 +97,7 @@ class Parser:
         time_rows = {}
 
         # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
-        for cellObj in sheet['A20':'FV108']:
+        for cellObj in self.sheet['A20':'FV108']:
             for cell in cellObj:
                 value = str(cell.value).lower().strip()
 
@@ -126,18 +143,32 @@ class Parser:
                 continue
             elif value in list_day_of_week:
                 continue
-            lessons.append(cell)
 
-        self.lessons = lessons
+            # add all merged group
+            has_merged_cells = False
+            for rng in self.sheet.merged_cells.ranges:
+                if cell.coordinate in rng:
+                    for i in self.sheet[str(rng)]:
+                        for j in i:
+                            pass
+            if not has_merged_cells:
+                lessons.append(cell)
+
+        self.lessons = []
+        for lesson in lessons:
+            self.lessons.append(Lesson(lesson,
+                                       get_duration(lesson, time_rows),
+                                       get_day_of_week(lesson.coordinate, dw_rows),
+                                       self.get_group_number(lesson, groups_columns)))
+
         self.groups_columns = groups_columns
-        self.time_rows = time_rows
 
     def get_lessons_by_group(self, group):
         lessons_of_group = []
         if group in self.groups_columns.keys():
-            for i in self.lessons:
-                if get_column_from_coordinate(i.coordinate) == self.groups_columns[group]:
-                    lessons_of_group.append(i)
+            for lesson in self.lessons:
+                if lesson.group_number == group:
+                    lessons_of_group.append(lesson)
 
         else:
             print(f"\nГруппа {group} не найдена")

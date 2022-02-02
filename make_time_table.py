@@ -8,12 +8,14 @@ groups = input("Введите нужные группы через запяту
     .strip().lower().split(", ")
 
 
-all_groups = data.groups_columns.keys()
+# all_groups = data.groups_columns.keys()
 
-time_table = None
+lessons = []
 
 for group in groups:
-    time_table = data.get_lessons_by_group(group)
+    lessons_for_group = data.get_lessons_by_group(group)
+    lessons.append(lessons_for_group)
 
-for i in time_table:
-    print(i.value)
+for lessons_for_group in lessons:
+    for lesson in lessons_for_group:
+        print(lesson.cell.value)
