@@ -1,4 +1,6 @@
+import openpyxl.cell
 from openpyxl import load_workbook
+from openpyxl import cell
 import re
 from Entitys import Lesson
 
@@ -7,6 +9,11 @@ pattern_to_finde_class_number = r'ауд. (\d+)'
 short_list_day_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 list_day_of_week = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота"]
 patter_to_define_time = r'^(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])-(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])$'
+
+
+def write_in_file(path, var):
+    with open(path, 'a') as file:
+        file.write(var)
 
 
 def is_day_of_week(text):
@@ -83,7 +90,7 @@ class Parser:
                 return key
 
     def __init__(self):
-
+        print("Start parsing")
         # Get workbook
         wb = load_workbook('file.xlsx')
 
@@ -111,8 +118,12 @@ class Parser:
                 elif re.search(patter_to_define_time, value):
                     time_rows[get_row_from_coordinate(cell.coordinate)] = value
 
-                elif value != None and value != '' and value != 'none':
+                elif type(cell) == openpyxl.cell.cell.MergedCell:
                     data.append(cell)
+                    #print("Merged cell", cell, "is added")
+                elif value != 'none':
+                    data.append(cell)
+                    #print("Not null cell", cell, "is added")
 
         # Get the row of the days of the week
         prev = days_of_week[0].value
@@ -148,9 +159,12 @@ class Parser:
             has_merged_cells = False
             for rng in self.sheet.merged_cells.ranges:
                 if cell.coordinate in rng:
-                    for i in self.sheet[str(rng)]:
-                        for j in i:
-                            pass
+                    new_cell = openpyxl.cell.Cell(self.sheet, cell.row, cell.column, self.sheet[str(rng)][0][0].value)
+                    lessons.append(new_cell)
+                    # if new_cell.coordinate == "W56":
+                    #     print(new_cell.value)
+                    # write_in_file('tmp.txt', new_cell.coordinate+" "+new_cell.value+"\n")
+                    has_merged_cells = True
             if not has_merged_cells:
                 lessons.append(cell)
 
