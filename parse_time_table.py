@@ -104,7 +104,7 @@ class Parser:
         time_rows = {}
 
         # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
-        for cellObj in self.sheet['A20':'FV108']:
+        for work_time, cellObj in enumerate(self.sheet['A20':'FV108']):
             for cell in cellObj:
                 value = str(cell.value).lower().strip()
 
@@ -120,10 +120,13 @@ class Parser:
 
                 elif type(cell) == openpyxl.cell.cell.MergedCell:
                     data.append(cell)
-                    #print("Merged cell", cell, "is added")
+                    # print("Merged cell", cell, "is added")
                 elif value != 'none':
                     data.append(cell)
-                    #print("Not null cell", cell, "is added")
+                    # print("Not null cell", cell, "is added")
+
+            if work_time % 10 == 0:
+                print(work_time)
 
         # Get the row of the days of the week
         prev = days_of_week[0].value
@@ -144,10 +147,11 @@ class Parser:
 
         # Delete no important from data to create table with lessons
 
+        print("Getting lessons")
+
         lessons = []
         faculty_row = str(int(get_row_from_coordinate(groups[0].coordinate)) - 1)
-
-        for cell in data:
+        for work_time, cell in enumerate(data):
             value = str(cell.value).lower().strip()
 
             if get_row_from_coordinate(cell.coordinate) == faculty_row:
@@ -159,14 +163,29 @@ class Parser:
             has_merged_cells = False
             for rng in self.sheet.merged_cells.ranges:
                 if cell.coordinate in rng:
-                    new_cell = openpyxl.cell.Cell(self.sheet, cell.row, cell.column, self.sheet[str(rng)][0][0].value)
-                    lessons.append(new_cell)
+
+                    ab = str(rng).split(':')
+
+                    a = ab[0]
+                    b = ab[1]
+
+                    a_row = get_row_from_coordinate(a)
+                    b_row = get_row_from_coordinate(b)
+
+                    if a_row == b_row or get_row_from_coordinate(cell.coordinate) == a_row:
+                        new_cell = openpyxl.cell.Cell(self.sheet, cell.row, cell.column,
+                                                      self.sheet[str(rng)][0][0].value)
+                        lessons.append(new_cell)
+
                     # if new_cell.coordinate == "W56":
                     #     print(new_cell.value)
                     # write_in_file('tmp.txt', new_cell.coordinate+" "+new_cell.value+"\n")
                     has_merged_cells = True
             if not has_merged_cells:
                 lessons.append(cell)
+
+            if work_time % 100 == 0:
+                print(work_time)
 
         self.lessons = []
         for lesson in lessons:
@@ -176,6 +195,8 @@ class Parser:
                                        self.get_group_number(lesson, groups_columns)))
 
         self.groups_columns = groups_columns
+
+    # sry about this (
 
     def get_lessons_by_group(self, group):
         lessons_of_group = []
