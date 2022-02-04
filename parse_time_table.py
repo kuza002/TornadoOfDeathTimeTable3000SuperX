@@ -1,15 +1,19 @@
+import re
+import tkinter
+import tkinter.filedialog
+
 import openpyxl.cell
 from openpyxl import load_workbook
-from openpyxl import cell
-import re
+
+import pyexcel as p
+
 from Entitys import Lesson
 
 # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
-pattern_to_finde_class_number = r'ауд. (\d+)'
+pattern_to_finde_class_number = r'ауд.\s*(\d+)'
 short_list_day_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 list_day_of_week = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота"]
 patter_to_define_time = r'^(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])-(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])$'
-
 
 
 def write_in_file(path, var):
@@ -85,8 +89,16 @@ class Parser:
     def __init__(self):
         print("Start parsing")
         # Get workbook
-        wb = load_workbook('file.xlsx')
+        root = tkinter.Tk()
 
+        file_path = tkinter.filedialog.askopenfilename()
+        if '.xls' in file_path and '.xlsx' not in file_path:
+            p.save_book_as(file_name=file_path,
+                           dest_file_name=file_path + "x")
+            file_path += 'x'
+
+        wb = load_workbook(file_path)
+        root.withdraw()
         # Get active page
         self.sheet = wb.active
 
@@ -95,9 +107,9 @@ class Parser:
         days_of_week = []
         groups = []
         time_rows = {}
-
         # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
-        for work_time, cellObj in enumerate(self.sheet['A20':'FV108']):
+
+        for work_time, cellObj in enumerate(self.sheet['A20':'FV123']):
             for cell in cellObj:
                 value = str(cell.value).lower().strip()
 
@@ -118,25 +130,25 @@ class Parser:
                     data.append(cell)
                     # print("Not null cell", cell, "is added")
 
-            if work_time % 10 == 0:
-                print(work_time)
+            # if work_time % 10 == 0:
+            #     print(work_time)
 
         # Get the row of the days of the week
         prev = days_of_week[0].value
         dw_rows = {prev: get_row_from_coordinate(days_of_week[0].coordinate)}
 
-        for i in days_of_week:
-            if i.value != prev:
-                prev = i.value.lower()
-                dw_rows[prev] = get_row_from_coordinate(i.coordinate)
+        for item in days_of_week:
+            if item.value != prev:
+                prev = item.value.lower()
+                dw_rows[prev] = get_row_from_coordinate(item.coordinate)
 
         # Get columns of the groups
 
         groups_columns = {}
 
-        for i in groups:
-            column = get_column_from_coordinate(i.coordinate)
-            groups_columns[i.value.lower().strip()] = column
+        for item in groups:
+            column = get_column_from_coordinate(item.coordinate)
+            groups_columns[item.value.lower().strip()] = column
 
         # Delete no important from data to create table with lessons
 
@@ -170,10 +182,8 @@ class Parser:
                                                       self.sheet[str(rng)][0][0].value)
                         lessons.append(new_cell)
 
-                    # if new_cell.coordinate == "W56":
-                    #     print(new_cell.value)
-                    # write_in_file('tmp.txt', new_cell.coordinate+" "+new_cell.value+"\n")
                     has_merged_cells = True
+
             if not has_merged_cells:
                 lessons.append(cell)
 
@@ -182,10 +192,27 @@ class Parser:
 
         self.lessons = []
         for lesson in lessons:
-            self.lessons.append(Lesson(lesson,
-                                       get_duration(lesson, time_rows),
-                                       get_day_of_week(lesson.coordinate, dw_rows),
-                                       self.get_group_number(lesson, groups_columns)))
+            if 'Курсы по выбору:' or 'Курс по выбору:' in lesson.value:
+
+                for item in lesson.value.split(';'):
+                    if 'н/н' in lesson.value and 'ч/н' not in lesson.value:
+                        if 'н/н' not in item:
+                            item = 'н/н ' + item
+                    elif 'н/н' not in lesson.value and 'ч/н' in lesson.value:
+                        if 'ч/н' not in item:
+                            item = 'ч/н ' + item
+
+                    new_cell = openpyxl.cell.Cell(self.sheet, row=lesson.row, column=lesson.column, value=item)
+
+                    self.lessons.append(Lesson(new_cell,
+                                               get_duration(new_cell, time_rows),
+                                               get_day_of_week(new_cell.coordinate, dw_rows),
+                                               self.get_group_number(new_cell, groups_columns)))
+            else:
+                self.lessons.append(Lesson(lesson,
+                                           get_duration(lesson, time_rows),
+                                           get_day_of_week(lesson.coordinate, dw_rows),
+                                           self.get_group_number(lesson, groups_columns)))
 
         self.groups_columns = groups_columns
 
@@ -205,11 +232,14 @@ class Parser:
     def get_lessons_by_classrooms(self, class_numbers):
         classrooms = {}
         for lesson in self.lessons:
+            # if lesson.cell.coordinate == 'DQ82':
+            # print(lesson.cell.value)
             classroom = get_class_number_from_cell(lesson.cell.value)
+
             if classroom in class_numbers:
                 if classroom in classrooms.keys():
                     classrooms[classroom].append(lesson)
                 else:
                     classrooms[classroom] = []
+                    classrooms[classroom].append(lesson)
         return classrooms
-
