@@ -74,7 +74,7 @@ def get_duration(coordinate, time_rows):
     for key, value in time_rows.items():
         if key == row or key == str(int(row) - 1):
             return value
-    print("Failed to find row with time")
+    write_in_file('log.txt', f'{coordinate} dont have a time')
     return None
 
 
@@ -109,7 +109,7 @@ class Parser:
         time_rows = {}
         # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
 
-        for work_time, cellObj in enumerate(self.sheet['A20':'FV123']):
+        for work_time, cellObj in enumerate(self.sheet):
             for cell in cellObj:
                 value = str(cell.value).lower().strip()
 
@@ -191,29 +191,34 @@ class Parser:
                 print(work_time)
 
         self.lessons = []
+
         for lesson in lessons:
-            if 'Курсы по выбору:' or 'Курс по выбору:' in lesson.value:
+            if 'курсы по выбору:' or 'курс по выбору:' in lesson.value.strip().lower():
+                try:
+                    for item in lesson.value.split(';'):
+                        if 'н/н' in lesson.value and 'ч/н' not in lesson.value:
+                            if 'н/н' not in item:
+                                item = 'н/н ' + item
+                        elif 'н/н' not in lesson.value and 'ч/н' in lesson.value:
+                            if 'ч/н' not in item:
+                                item = 'ч/н ' + item
 
-                for item in lesson.value.split(';'):
-                    if 'н/н' in lesson.value and 'ч/н' not in lesson.value:
-                        if 'н/н' not in item:
-                            item = 'н/н ' + item
-                    elif 'н/н' not in lesson.value and 'ч/н' in lesson.value:
-                        if 'ч/н' not in item:
-                            item = 'ч/н ' + item
+                        new_cell = openpyxl.cell.Cell(self.sheet, row=lesson.row, column=lesson.column, value=item)
 
-                    new_cell = openpyxl.cell.Cell(self.sheet, row=lesson.row, column=lesson.column, value=item)
-
-                    self.lessons.append(Lesson(new_cell,
-                                               get_duration(new_cell, time_rows),
-                                               get_day_of_week(new_cell.coordinate, dw_rows),
-                                               self.get_group_number(new_cell, groups_columns)))
+                        self.lessons.append(Lesson(new_cell,
+                                                   get_duration(new_cell, time_rows),
+                                                   get_day_of_week(new_cell.coordinate, dw_rows),
+                                                   self.get_group_number(new_cell, groups_columns)))
+                except:
+                    write_in_file('log.txt', f'"{lesson.coordinate, lesson.value}" is not choice lesson\n')
             else:
-                self.lessons.append(Lesson(lesson,
-                                           get_duration(lesson, time_rows),
-                                           get_day_of_week(lesson.coordinate, dw_rows),
-                                           self.get_group_number(lesson, groups_columns)))
-
+                try:
+                    self.lessons.append(Lesson(lesson,
+                                               get_duration(lesson, time_rows),
+                                               get_day_of_week(lesson.coordinate, dw_rows),
+                                               self.get_group_number(lesson, groups_columns)))
+                except:
+                    write_in_file('log.txt', f'"{lesson.coordinate, lesson.value}" is not lesson\n')
         self.groups_columns = groups_columns
 
     # sry about this (
