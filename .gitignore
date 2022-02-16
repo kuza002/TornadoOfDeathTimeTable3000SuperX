@@ -1,2 +1,7 @@
-/log.txt
+/some_files/log.txt
 /filename.pickle
+/venv/
+/.idea/
+/parse_time_table_BACKUP.py
+/some_files/data.pickle
+/some_files/old_data.pickle
