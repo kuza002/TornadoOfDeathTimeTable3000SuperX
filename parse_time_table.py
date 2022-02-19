@@ -233,5 +233,13 @@ class Parser:
     # endregion
 
 
+@thread
+def test(savename, name):
+    a = Parser(name)
+    with open(savename, 'wb') as output:
+        pickle.dump(a, output)
+    return
+
+
 if __name__ == '__main__':
-    print('parse file!')
+    print('parser class file!')
