@@ -4,10 +4,11 @@ import pickle
 import shutil
 import threading
 import tkinter as tk
-from tkinter import Tk, BOTH, filedialog, PhotoImage
+import openpyxl
+from tkinter import Tk, BOTH, filedialog, PhotoImage,Menu
 from tkinter.ttk import Frame, Button, Style, Entry, Label
 from tkinter import messagebox as mbox
-import openpyxl
+from Settings_window import Worker_set
 from parse_time_table import Parser
 from support_file import *
 
@@ -34,6 +35,11 @@ class Example(Frame):
         self.style.theme_use("default")
         self.pack(fill=BOTH, expand=1)
 
+        menubar = Menu(self.master)
+        self.parent.config(menu=menubar)
+        fileMenu = Menu(menubar)
+        fileMenu.add_command(label="Сотрудники", command=self.open_worker_settings)
+        menubar.add_cascade(label="*****", menu=fileMenu)
         bies = 100
 
         file_label = Label(self, text='Расположение файла с расписания занятий')
@@ -58,6 +64,10 @@ class Example(Frame):
         fl = dlg.show()
         self.file_path.insert(0, fl)
 
+    def open_worker_settings(self):
+        window = Worker_set(self)
+        window.geometry("512x512")
+        window.grab_set()
     @thread
     def parse_file(self):
         self.parse_button.config(state=tk.DISABLED)
@@ -84,6 +94,7 @@ class Example(Frame):
                   'Ахад:09-063 (1)',
                   'Максим:09-012 (1)',
                   'Илья К.:09-012 (1)', ]
+
 
         # Create area to put lessons ( sry about this ;) )
         magic_var = list(range(6, 77, 14))

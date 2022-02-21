@@ -1,3 +1,6 @@
+import pickle
+
+import numpy as np
 from openpyxl.styles import PatternFill
 days_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 times = ['8.30-10.00', '10.10-11.40', '11.50-13.20', '14.00-15.30', '15.40-17.10', '17.50-19.20']
@@ -40,3 +43,11 @@ class Lesson:
         self.duration = duration
         self.day_of_week = day_of_week
         self.group_number = group_number
+
+if __name__=='__main__':
+    groups = ['Илья Г.:09-933 (1)',
+              'Данил:09-933 (1)',
+              'Ахад:09-063 (1)',
+              'Максим:09-012 (1)',
+              'Илья К.:09-012 (1)', ]
+    print(np.split(groups,':'))
