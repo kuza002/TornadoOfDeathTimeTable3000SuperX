@@ -65,7 +65,7 @@ class Example(Frame):
 
     def open_worker_settings(self):
         window = Worker_set(self)
-        window.geometry("300x256")
+        window.geometry("300x300")
         window.grab_set()
 
     @thread
@@ -105,14 +105,14 @@ class Example(Frame):
         all_lessons = {}
 
         for worker in workers:
-            all_lessons[':'.join(worker)] = self.data.get_lessons_by_group(worker[1]+worker[2])
+            all_lessons[':'.join(worker)] = self.data.get_lessons_by_group(worker[1])
 
         # region Create table for workers
         group_coord = 'C'
         for worker, lessons in all_lessons.items():
             worker=worker.split(':')
             wb[wb.sheetnames[1]][group_coord + "1"] = worker[0]
-            wb[wb.sheetnames[1]][group_coord + "2"] = worker[1]+worker[2]
+            wb[wb.sheetnames[1]][group_coord + "2"] = worker[1]
             paint_cells(wb[wb.sheetnames[1]], lessons, bad_color, magic_var, group_coord, True)
 
             group_coord = chr(ord(group_coord) + 1)

@@ -48,6 +48,8 @@ class Parser:
 
                 # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
                 elif '09-' in value:
+                    if '09-145' in value:
+                        print(value)
                     groups.append(cell)
 
                 elif re.search(patter_to_define_time, value):
