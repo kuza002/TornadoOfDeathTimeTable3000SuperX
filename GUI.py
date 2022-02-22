@@ -91,11 +91,7 @@ class Example(Frame):
                 mbox.showerror('Ошибка!', 'Не найден файл data.pickle')
         wb = openpyxl.load_workbook('some_files/template.xlsx')
 
-        groups = ['Илья Г.:09-933 (1)',
-                  'Данил:09-933 (1)',
-                  'Ахад:09-063 (1)',
-                  'Максим:09-012 (1)',
-                  'Илья К.:09-012 (1)', ]
+
         with open('some_files/workers.pickle', 'rb') as f:
             workers = pickle.load(f)
         # Create area to put lessons ( sry about this ;) )
