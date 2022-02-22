@@ -5,9 +5,8 @@ import shutil
 import threading
 import tkinter as tk
 import openpyxl
-from tkinter import Tk, BOTH, filedialog, PhotoImage,Menu
+from tkinter import Tk, BOTH, filedialog, PhotoImage, Menu, messagebox as mbox
 from tkinter.ttk import Frame, Button, Style, Entry, Label
-from tkinter import messagebox as mbox
 from Settings_window import Worker_set
 from parse_time_table import Parser
 from support_file import *
@@ -66,8 +65,9 @@ class Example(Frame):
 
     def open_worker_settings(self):
         window = Worker_set(self)
-        window.geometry("512x512")
+        window.geometry("300x256")
         window.grab_set()
+
     @thread
     def parse_file(self):
         self.parse_button.config(state=tk.DISABLED)
@@ -84,9 +84,11 @@ class Example(Frame):
 
     def make_table(self):
         if not self.parsed:
-            with open('some_files/data.pickle', 'rb') as f:
-                self.data = pickle.load(f)
-
+            if os.path.exists('some_files/data.pickle'):
+                with open('some_files/data.pickle', 'rb') as f:
+                    self.data = pickle.load(f)
+            else:
+                mbox.showerror('Ошибка!', 'Не найден файл data.pickle')
         wb = openpyxl.load_workbook('some_files/template.xlsx')
 
         groups = ['Илья Г.:09-933 (1)',
@@ -94,23 +96,23 @@ class Example(Frame):
                   'Ахад:09-063 (1)',
                   'Максим:09-012 (1)',
                   'Илья К.:09-012 (1)', ]
-
-
+        with open('some_files/workers.pickle', 'rb') as f:
+            workers = pickle.load(f)
         # Create area to put lessons ( sry about this ;) )
         magic_var = list(range(6, 77, 14))
 
         # Getting lessons for all groups
         all_lessons = {}
 
-        for group in groups:
-            lessons_for_group = self.data.get_lessons_by_group(group.split(':')[1])
-            all_lessons[group] = lessons_for_group
+        for worker in workers:
+            all_lessons[':'.join(worker)] = self.data.get_lessons_by_group(worker[1]+worker[2])
 
         # region Create table for workers
         group_coord = 'C'
-        for group, lessons in all_lessons.items():
-            wb[wb.sheetnames[1]][group_coord + "1"] = group.split(':')[0]
-            wb[wb.sheetnames[1]][group_coord + "2"] = group.split(':')[1]
+        for worker, lessons in all_lessons.items():
+            worker=worker.split(':')
+            wb[wb.sheetnames[1]][group_coord + "1"] = worker[0]
+            wb[wb.sheetnames[1]][group_coord + "2"] = worker[1]+worker[2]
             paint_cells(wb[wb.sheetnames[1]], lessons, bad_color, magic_var, group_coord, True)
 
             group_coord = chr(ord(group_coord) + 1)
