@@ -36,6 +36,7 @@ class Example(Frame):
 
         menubar = Menu(self)
         menubar.add_cascade(label="Сотрудники", command=self.open_worker_settings)
+
         self.parent.config(menu=menubar)
 
         bias = 100
