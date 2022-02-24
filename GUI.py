@@ -134,7 +134,7 @@ class Example(Frame):
             if ans=='yes':
                 self.quit()
         else:
-            mbox.showwarning(title='Сохранение', message='Файл не сохранён')
+            mbox.showwarning(title='Сохранение', message='Файл не сохранён!')
         print('DONE!!!')
 
 if __name__ == '__main__':
