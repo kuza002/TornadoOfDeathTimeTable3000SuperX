@@ -1,6 +1,5 @@
 import os
 import pickle
-import re
 from tkinter import Toplevel, Listbox, END, Label, messagebox as mbox
 from tkinter.ttk import Button, Entry
 
@@ -12,6 +11,7 @@ class Worker_set(Toplevel):
         self.initUI()
 
     def initUI(self):
+
         self.lb = Listbox(self)
         if os.path.exists('some_files/workers.pickle'):
             with open('some_files/workers.pickle', 'rb') as f:
@@ -24,6 +24,7 @@ class Worker_set(Toplevel):
 
         self.lb.place(x=0, y=0)
         self.lb.bind("<<ListboxSelect>>", self.onSelect)
+        self.lb.bind("<BackSpace>",self.del_func)
         self.entry_list = []
         for i in range(2):
             x_pos, y_pos= 150, 50 * (i + 1)
@@ -32,41 +33,49 @@ class Worker_set(Toplevel):
         Label(self,text='Группа',font=('roboto',10)).place(x=150,y=20)
         # Label(self,text='Подгруппа').place(x=150,y=75)
         Button(self, text='Сохранить', command=self.save_data).place(x=170, y=40 * 3)
+        Label(self, text='Добавить сотрудника', ).place(x=0, y=180)
         self.e_add = Entry(self)
-        self.e_add.place(x=0, y=180)
-        Button(self, text="Добавить сотрудника", command=self.addItem).place(x=0, y=200)
-        Button(self, text='Удалить сотрудника', command=self.delItem).place(x=0, y=250)
+        self.e_add.place(x=0, y=200)
+        self.e_add.bind('<Return>', self.addItem)
 
-    def addItem(self):
+    def addItem(self,event):
         if self.e_add.get().strip()!='':
             self.lb.insert(END, self.e_add.get())
-            self.workers.append([self.e_add.get(),''])
+            # self.workers.append([self.e_add.get(),''])
+            self.e_add.delete(0,END)
 
 
     def onSelect(self,event):
-        worker=self.workers[event.widget.curselection()[0]][1]
-        for i in range(len(self.entry_list)-1):
-            self.entry_list[i].delete(0,END)
-            self.entry_list[i].insert(0,worker)
+        if len(self.workers)>event.widget.curselection()[0]:
+            worker=self.workers[event.widget.curselection()[0]][1]
+            for i in range(len(self.entry_list)-1):
+                self.entry_list[i].delete(0,END)
+                self.entry_list[i].insert(0,worker)
+        else:
+            for i in range(len(self.entry_list) - 1):
+                self.entry_list[i].delete(0, END)
 
 
     def save_data(self):
         index = self.lb.curselection()[0]
         group=self.entry_list[0].get()
         if group.strip()!='':
-            self.workers[index][1]=group.strip().lower()
-            print(self.workers[index])
+            if len(self.workers)>index:
+                self.workers[index][1]=group.strip().lower()
+            else:
+                self.workers.append([self.lb.get(index),group.strip().lower()])
+            with open('some_files/workers.pickle', 'wb') as f:
+                pickle.dump(self.workers, f)
         else:
             mbox.showerror('Ошибка!', 'Некорректные данные!')
 
-        with open('some_files/workers.pickle', 'wb') as f:
-            pickle.dump(self.workers, f)
 
-    def delItem(self):
+
+    def del_func(self,event):
         try:
-            sel = self.lb.curselection()[0]
-            self.lb.delete(sel)
-            del self.workers[sel]
+            index = event.widget.curselection()[0]
+            self.lb.delete(index)
+            del self.workers[index]
             with open('some_files/workers.pickle', 'wb') as f:
                 pickle.dump(self.workers, f)
         except:

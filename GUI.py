@@ -1,6 +1,5 @@
 import datetime
 import os
-import pickle
 import shutil
 import threading
 import tkinter as tk
@@ -22,55 +21,54 @@ def thread(fn):
 class Example(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
+        self.data = None
         self.parent = parent
         self.parsed = False
         self.wb = openpyxl.load_workbook('some_files/template.xlsx')
-        self.initUI()
+        self.__initUI__()
 
-    def initUI(self):
+    def __initUI__(self):
         self.parent.title("Шото с чем-то")
-        self.parent.iconphoto(False, PhotoImage(file='some_files/magic-wand.png'))
+        self.parent.iconphoto(False, PhotoImage(file='some_files/icon.png'))
         self.style = Style()
         self.style.theme_use("default")
         self.pack(fill=BOTH, expand=1)
-
-        menubar = Menu(self)
-        menubar.add_cascade(label="Сотрудники", command=self.open_worker_settings)
-
-        self.parent.config(menu=menubar)
-
+        self.menubar = Menu(self)
+        self.menubar.add_cascade(label="Сотрудники", command=self.__open_worker_settings__)
+        self.parent.config(menu=self.menubar)
         bias = 100
-
-        file_label = Label(self, text='Расположение файла с расписания занятий')
-        file_label.place(x=20 + bias, y=70)
-
+        Label(self, text='Расположение файла с расписанием занятий').place(x=20 + bias, y=70)
         self.file_path = Entry(self)
         self.file_path.place(x=20 + bias, y=90, width=267, height=30)
 
-        file_picker = Button(self, text="Выбрать файл", command=self.open_file)
-        file_picker.place(x=20 + bias, y=130)
+        self.file_picker = Button(self, text="Выбрать файл", command=self.__open_file__)
+        self.file_picker.place(x=20 + bias, y=130)
 
-        self.parse_button = Button(self, text="Спарсить", command=self.parse_file)
+        self.parse_button = Button(self, text="Спарсить", command=self.__parse_file__)
         self.parse_button.place(x=200 + bias, y=130)
 
-        just_button = Button(self, text='Работать!', command=self.make_table)
-        just_button.place(x=120 + bias, y=450)
+        self.just_button = Button(self, text='Работать!', command=self.__make_table__)
+        self.just_button.place(x=120 + bias, y=450)
 
-    def open_file(self):
+    def __open_file__(self):
         ftypes = [('Excel files', '*.xlsx')]
         dlg = filedialog.Open(self, filetypes=ftypes)
 
         fl = dlg.show()
         self.file_path.insert(0, fl)
 
-    def open_worker_settings(self):
+    def __open_worker_settings__(self):
         window = Worker_set(self)
+        window.title('Сотрудники')
         window.geometry("300x300")
         window.grab_set()
+        window.iconphoto(False, PhotoImage(file='some_files/icon.png'))
 
     @thread
-    def parse_file(self):
+    def __parse_file__(self):
         self.parse_button.config(state=tk.DISABLED)
+        self.just_button.config(state=tk.DISABLED)
+        self.file_picker.config(state=tk.DISABLED)
         if os.path.exists('some_files/data.pickle'):
             shutil.copyfile('some_files/data.pickle', 'some_files/old_data.pickle')
         if self.file_path.get() == '':
@@ -81,8 +79,12 @@ class Example(Frame):
                 pickle.dump(self.data, output)
             self.parsed = True
         self.parse_button.config(state=tk.NORMAL)
+        self.just_button.config(state=tk.NORMAL)
+        self.file_picker.config(state=tk.NORMAL)
 
-    def make_table(self):
+        mbox.showinfo(message='Парсинг закончен!')
+
+    def __make_table__(self):
         if not self.parsed:
             if os.path.exists('some_files/data.pickle'):
                 with open('some_files/data.pickle', 'rb') as f:
@@ -90,7 +92,6 @@ class Example(Frame):
             else:
                 mbox.showerror('Ошибка!', 'Не найден файл data.pickle')
         wb = openpyxl.load_workbook('some_files/template.xlsx')
-
 
         with open('some_files/workers.pickle', 'rb') as f:
             workers = pickle.load(f)
@@ -106,7 +107,7 @@ class Example(Frame):
         # region Create table for workers
         group_coord = 'C'
         for worker, lessons in all_lessons.items():
-            worker=worker.split(':')
+            worker = worker.split(':')
             wb[wb.sheetnames[1]][group_coord + "1"] = worker[0]
             wb[wb.sheetnames[1]][group_coord + "2"] = worker[1]
             paint_cells(wb[wb.sheetnames[1]], lessons, bad_color, magic_var, group_coord, True)
@@ -128,17 +129,16 @@ class Example(Frame):
             now = datetime.datetime.now()
             date = f'{now.day}.{now.month}.{now.year}'
             wb.save(f'{directory}/schedule_{date}.xlsx')
+            ans=mbox.askquestion(title='Сохранение', message='Таблица сохранена!\nЗакрыть приложение?')
+
+            if ans=='yes':
+                self.quit()
         else:
-            mbox.showwarning('Тест', 'Файл не сохранён')
+            mbox.showwarning(title='Сохранение', message='Файл не сохранён')
         print('DONE!!!')
 
-
-def main():
+if __name__ == '__main__':
     root = Tk()
     root.geometry("512x512")
     Example(root)
     root.mainloop()
-
-
-if __name__ == '__main__':
-    main()
