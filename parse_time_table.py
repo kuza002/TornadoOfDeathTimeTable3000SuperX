@@ -48,8 +48,6 @@ class Parser:
 
                 # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
                 elif '09-' in value:
-                    if '09-145' in value:
-                        print(value)
                     groups.append(cell)
 
                 elif re.search(patter_to_define_time, value):
@@ -225,7 +223,7 @@ class Parser:
         for key, value in time_rows.items():
             if key == row or key == str(int(row) - 1):
                 return value
-        write_in_file('some_files/log.txt', f'{coordinate} dont have a time')
+        write_in_file('some_files/log.txt', f'{coordinate} dont have a time\n')
         return None
 
     def get_group_number(self, cell, groups_columns):
