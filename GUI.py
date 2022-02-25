@@ -14,7 +14,6 @@ from support_file import *
 def thread(fn):
     def execute(*args, **kwargs):
         threading.Thread(target=fn, args=args, kwargs=kwargs).start()
-
     return execute
 
 
@@ -102,7 +101,17 @@ class Example(Frame):
         all_lessons = {}
 
         for worker in workers:
-            all_lessons[':'.join(worker)] = self.data.get_lessons_by_group(worker[1])
+            if worker[1]=='':
+                mbox.showwarning(title='Ошибка',
+                                 message=f'У сотрудника {worker[0]} нет группы.\n'
+                                         f'Он не будет сохранен в таблице')
+
+            elif self.data.get_lessons_by_group(worker[1])==None:
+                mbox.showerror(title='Ошибка!',
+                               message=f'Не удалось найти группу сотрудника {worker[0]}\n'
+                                       f'Он не будет сохранен в таблице')
+            else:
+                all_lessons[':'.join(worker)] = self.data.get_lessons_by_group(worker[1])
 
         # region Create table for workers
         group_coord = 'C'
@@ -136,9 +145,3 @@ class Example(Frame):
         else:
             mbox.showwarning(title='Сохранение', message='Файл не сохранён!')
         print('DONE!!!')
-
-if __name__ == '__main__':
-    root = Tk()
-    root.geometry("512x512")
-    Example(root)
-    root.mainloop()

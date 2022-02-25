@@ -39,9 +39,9 @@ class Worker_set(Toplevel):
         self.e_add.bind('<Return>', self.addItem)
 
     def addItem(self,event):
-        if self.e_add.get().strip()!='':
-            self.lb.insert(END, self.e_add.get())
-            # self.workers.append([self.e_add.get(),''])
+        if event.widget.get().strip()!='':
+            self.lb.insert(END, event.widget.get())
+            self.workers.append([event.widget.get(),''])
             self.e_add.delete(0,END)
 
 

@@ -158,7 +158,7 @@ class Parser:
             return lessons_of_group
         else:
             print(f"\nГруппа {group} не найдена")
-            exit(400)
+            return None
 
     def get_lessons_by_classrooms(self, class_numbers):
         classrooms = {}
