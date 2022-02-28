@@ -1,6 +1,4 @@
 import pickle
-
-import numpy as np
 from openpyxl.styles import PatternFill
 
 days_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
@@ -38,6 +36,7 @@ def paint_cells(sheet, lessons, color, magic_var, column, flag_for_groups=False)
         except:
             write_in_file('some_files/log.txt', f'{lesson.cell.coordinate, lesson.cell.value} is a lesson after 19:30')
             continue
+
 
 
 class Lesson:

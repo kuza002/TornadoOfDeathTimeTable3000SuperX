@@ -42,17 +42,13 @@ class Parser:
         for work_time, cellObj in enumerate(self.sheet):
             for cell in cellObj:
                 value = str(cell.value).lower().strip()
-
                 if value in short_list_day_of_week:
                     days_of_week.append(cell)
-
                 # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
                 elif '09-' in value:
                     groups.append(cell)
-
                 elif re.search(patter_to_define_time, value):
-                    time_rows[self.get_row_from_coordinate(cell.coordinate)] = value
-
+                    time_rows[str(cell.row)] = value
                 elif type(cell) == openpyxl.cell.cell.MergedCell:
                     data.append(cell)
                     # print("Merged cell", cell, "is added")
@@ -63,8 +59,7 @@ class Parser:
         # Get the row of the days of the week
         dw_rows = {}
         for item in days_of_week:
-            prev = item.value.lower()
-            dw_rows[prev] = self.get_row_from_coordinate(item.coordinate)
+            dw_rows[item.value.lower()] = str(item.row)
 
         # Get columns of the groups
 
@@ -74,21 +69,22 @@ class Parser:
             column = self.get_column_from_coordinate(item.coordinate)
             groups_columns[item.value.lower().strip()] = column
 
+
+
         # Delete no important from data to create table with lessons
 
         print("Getting lessons")
 
         lessons = []
-        faculty_row = str(int(self.get_row_from_coordinate(groups[0].coordinate)) - 1)
+        faculty_row = str(groups[0].row - 1)
         data_len = len(data)
         for work_time, cell in enumerate(data):
             value = str(cell.value).lower().strip()
 
-            if self.get_row_from_coordinate(cell.coordinate) == faculty_row:
+            if str(cell.row) == faculty_row:
                 continue
             elif value in list_day_of_week:
                 continue
-
             # add all merged group
             has_merged_cells = False
             for rng in self.sheet.merged_cells.ranges:
@@ -98,11 +94,10 @@ class Parser:
 
                     a = ab[0]
                     b = ab[1]
-
                     a_row = self.get_row_from_coordinate(a)
                     b_row = self.get_row_from_coordinate(b)
 
-                    if a_row == b_row or self.get_row_from_coordinate(cell.coordinate) == a_row:
+                    if a_row == b_row or str(cell.row) == a_row:
                         new_cell = openpyxl.cell.Cell(self.sheet, cell.row, cell.column,
                                                       self.sheet[str(rng)][0][0].value)
                         lessons.append(new_cell)
@@ -134,7 +129,7 @@ class Parser:
 
                         self.lessons.append(Lesson(new_cell,
                                                    self.get_duration(new_cell, time_rows),
-                                                   self.get_day_of_week(new_cell.coordinate, dw_rows),
+                                                   self.get_day_of_week(new_cell.row, dw_rows),
                                                    self.get_group_number(new_cell, groups_columns)))
                 except:
                     write_in_file('some_files/log.txt', f'"{lesson.coordinate, lesson.value}" is not choice lesson\n')
@@ -142,7 +137,7 @@ class Parser:
                 try:
                     self.lessons.append(Lesson(lesson,
                                                self.get_duration(lesson, time_rows),
-                                               self.get_day_of_week(lesson.coordinate, dw_rows),
+                                               self.get_day_of_week(lesson.row, dw_rows),
                                                self.get_group_number(lesson, groups_columns)))
                 except:
                     write_in_file('some_files/log.txt', f'"{lesson.coordinate, lesson.value}" is not lesson\n')
@@ -199,15 +194,13 @@ class Parser:
                 column += i
         return column
 
-    def get_day_of_week(self, coord, dw_rows):
-        row = int(self.get_row_from_coordinate(coord))
+    def get_day_of_week(self, row, dw_rows):
         day_of_week = ""
 
         dw_rows["вс"] = '100000'
 
         for k, v in dw_rows.items():
             v = int(v)
-
             if v > row:
                 break
             else:
@@ -218,12 +211,12 @@ class Parser:
 
         return day_of_week
 
-    def get_duration(self, coordinate, time_rows):
-        row = self.get_row_from_coordinate(coordinate.coordinate)
+    def get_duration(self, cell, time_rows):
+        row = str(cell.row)
         for key, value in time_rows.items():
             if key == row or key == str(int(row) - 1):
                 return value
-        write_in_file('some_files/log.txt', f'{coordinate} dont have a time\n')
+        write_in_file('some_files/log.txt', f'{cell.coordinate} dont have a time\n')
         return None
 
     def get_group_number(self, cell, groups_columns):

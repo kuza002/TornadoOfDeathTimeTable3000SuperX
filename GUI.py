@@ -4,7 +4,7 @@ import shutil
 import threading
 import tkinter as tk
 import openpyxl
-from tkinter import Tk, BOTH, filedialog, PhotoImage, Menu, messagebox as mbox
+from tkinter import BOTH, filedialog, PhotoImage, Menu, messagebox as mbox
 from tkinter.ttk import Frame, Button, Style, Entry, Label
 from Settings_window import Worker_set
 from parse_time_table import Parser

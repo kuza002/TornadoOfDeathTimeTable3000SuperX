@@ -42,8 +42,12 @@ class Worker_set(Toplevel):
         if event.widget.get().strip()!='':
             self.lb.insert(END, event.widget.get())
             self.workers.append([event.widget.get(),''])
+            self.save()
             self.e_add.delete(0,END)
 
+    def save(self):
+        with open('some_files/workers.pickle', 'wb') as f:
+            pickle.dump(self.workers, f)
 
     def onSelect(self,event):
         if len(self.workers)>event.widget.curselection()[0]:
@@ -64,8 +68,7 @@ class Worker_set(Toplevel):
                 self.workers[index][1]=group.strip().lower()
             else:
                 self.workers.append([self.lb.get(index),group.strip().lower()])
-            with open('some_files/workers.pickle', 'wb') as f:
-                pickle.dump(self.workers, f)
+            self.save()
         else:
             mbox.showerror('Ошибка!', 'Некорректные данные!')
 
@@ -76,7 +79,6 @@ class Worker_set(Toplevel):
             index = event.widget.curselection()[0]
             self.lb.delete(index)
             del self.workers[index]
-            with open('some_files/workers.pickle', 'wb') as f:
-                pickle.dump(self.workers, f)
+            self.save()
         except:
             mbox.showerror('Ошибка!', 'Выберите сотрудника для удаления!')
