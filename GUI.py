@@ -4,16 +4,17 @@ import shutil
 import threading
 import tkinter as tk
 import openpyxl
-from tkinter import BOTH, filedialog, PhotoImage, Menu, messagebox as mbox
+from tkinter import BOTH, filedialog, PhotoImage, Menu, END, messagebox as mbox
 from tkinter.ttk import Frame, Button, Style, Entry, Label
 from Settings_window import Worker_set
-from parse_time_table import Parser
+from optimized_parser import Parser
 from support_file import *
 
 
 def thread(fn):
     def execute(*args, **kwargs):
         threading.Thread(target=fn, args=args, kwargs=kwargs).start()
+
     return execute
 
 
@@ -54,6 +55,7 @@ class Example(Frame):
         dlg = filedialog.Open(self, filetypes=ftypes)
 
         fl = dlg.show()
+        self.file_path.delete(0, END)
         self.file_path.insert(0, fl)
 
     def __open_worker_settings__(self):
@@ -101,17 +103,18 @@ class Example(Frame):
         all_lessons = {}
 
         for worker in workers:
-            if worker[1]=='':
+            if worker[1] == '':
                 mbox.showwarning(title='Ошибка',
                                  message=f'У сотрудника {worker[0]} нет группы.\n'
                                          f'Он не будет сохранен в таблице')
 
-            elif self.data.get_lessons_by_group(worker[1])==None:
+            elif self.data.get_lessons_by_group(worker[1]) == None:
                 mbox.showerror(title='Ошибка!',
                                message=f'Не удалось найти группу сотрудника {worker[0]}\n'
                                        f'Он не будет сохранен в таблице')
             else:
                 all_lessons[':'.join(worker)] = self.data.get_lessons_by_group(worker[1])
+                # print(self.data.get_lessons_by_group(worker[1]))
 
         # region Create table for workers
         group_coord = 'C'
@@ -138,9 +141,9 @@ class Example(Frame):
             now = datetime.datetime.now()
             date = f'{now.day}.{now.month}.{now.year}'
             wb.save(f'{directory}/schedule_{date}.xlsx')
-            ans=mbox.askquestion(title='Сохранение', message='Таблица сохранена!\nЗакрыть приложение?')
+            ans = mbox.askquestion(title='Сохранение', message='Таблица сохранена!\nЗакрыть приложение?')
 
-            if ans=='yes':
+            if ans == 'yes':
                 self.quit()
         else:
             mbox.showwarning(title='Сохранение', message='Файл не сохранён!')
