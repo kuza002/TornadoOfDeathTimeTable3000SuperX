@@ -9,6 +9,7 @@ from tkinter.ttk import Frame, Button, Style, Entry, Label
 from Settings_window import Worker_set
 from optimized_parser import Parser
 from support_file import *
+import pickle
 
 
 def thread(fn):
@@ -28,24 +29,24 @@ class Example(Frame):
         self.__initUI__()
 
     def __initUI__(self):
-        self.parent.title("Шото с чем-то")
+        self.parent.title('Шото с чем-то')
         self.parent.iconphoto(False, PhotoImage(file='some_files/icon.png'))
         self.style = Style()
-        self.style.theme_use("default")
+        self.style.theme_use('default')
         self.pack(fill=BOTH, expand=1)
         self.menubar = Menu(self)
-        self.menubar.add_cascade(label="Сотрудники", command=self.__open_worker_settings__)
+        self.menubar.add_cascade(label='Сотрудники', command=self.__open_worker_settings__)
         self.parent.config(menu=self.menubar)
         bias = 100
         Label(self, text='Расположение файла с расписанием занятий').place(x=20 + bias, y=70)
         self.file_path = Entry(self)
         self.file_path.place(x=20 + bias, y=90, width=267, height=30)
 
-        self.file_picker = Button(self, text="Выбрать файл", command=self.__open_file__)
+        self.file_picker = Button(self, text='Выбрать файл', command=self.__open_file__)
         self.file_picker.place(x=20 + bias, y=130)
 
-        self.parse_button = Button(self, text="Спарсить", command=self.__parse_file__)
-        self.parse_button.place(x=200 + bias, y=130)
+        self.parse_button = Button(self, text='Тык', command=self.__parse_file__)
+        self.parse_button.place(x=220 + bias, y=130)
 
         self.just_button = Button(self, text='Работать!', command=self.__make_table__)
         self.just_button.place(x=120 + bias, y=450)
@@ -61,11 +62,11 @@ class Example(Frame):
     def __open_worker_settings__(self):
         window = Worker_set(self)
         window.title('Сотрудники')
-        window.geometry("300x300")
+        window.geometry('300x300')
         window.grab_set()
         window.iconphoto(False, PhotoImage(file='some_files/icon.png'))
 
-    @thread
+    # @thread
     def __parse_file__(self):
         self.parse_button.config(state=tk.DISABLED)
         self.just_button.config(state=tk.DISABLED)
@@ -73,7 +74,7 @@ class Example(Frame):
         if os.path.exists('some_files/data.pickle'):
             shutil.copyfile('some_files/data.pickle', 'some_files/old_data.pickle')
         if self.file_path.get() == '':
-            mbox.showerror("Ошибка!", 'Выберите сначала файл!')
+            mbox.showerror('Ошибка!', 'Выберите сначала файл!')
         else:
             self.data = Parser(self.file_path.get())
             with open('some_files/data.pickle', 'wb') as output:
@@ -108,7 +109,7 @@ class Example(Frame):
                                  message=f'У сотрудника {worker[0]} нет группы.\n'
                                          f'Он не будет сохранен в таблице')
 
-            elif self.data.get_lessons_by_group(worker[1]) == None:
+            elif self.data.get_lessons_by_group(worker[1]) is None:
                 mbox.showerror(title='Ошибка!',
                                message=f'Не удалось найти группу сотрудника {worker[0]}\n'
                                        f'Он не будет сохранен в таблице')
@@ -120,9 +121,9 @@ class Example(Frame):
         group_coord = 'C'
         for worker, lessons in all_lessons.items():
             worker = worker.split(':')
-            wb[wb.sheetnames[1]][group_coord + "1"] = worker[0]
-            wb[wb.sheetnames[1]][group_coord + "2"] = worker[1]
-            paint_cells(wb[wb.sheetnames[1]], lessons, bad_color, magic_var, group_coord, True)
+            wb[wb.sheetnames[1]][group_coord + '1'] = worker[0]
+            wb[wb.sheetnames[1]][group_coord + '2'] = worker[1]
+            paint_cells(wb[wb.sheetnames[1]], lessons, bad_color, magic_var, group_coord)
 
             group_coord = chr(ord(group_coord) + 1)
         # endregion

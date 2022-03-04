@@ -69,8 +69,6 @@ class Parser:
             column = self.get_column_from_coordinate(item.coordinate)
             groups_columns[item.value.lower().strip()] = column
 
-
-
         # Delete no important from data to create table with lessons
 
         print("Getting lessons")

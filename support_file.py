@@ -1,4 +1,3 @@
-import pickle
 from openpyxl.styles import PatternFill
 
 days_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
@@ -14,14 +13,14 @@ def write_in_file(path, var):
         file.write(var)
 
 
-def paint_cells(sheet, lessons, color, magic_var, column, flag_for_groups=False):
+def paint_cells(sheet, lessons, color, magic_var, column):
     for lesson in lessons:
         try:
             dw_index = days_of_week.index(lesson.day_of_week)
 
-            if flag_for_groups:
-                if lesson.day_of_week == 'сб' and times.index(lesson.duration) > 3:
-                    continue
+            if lesson.day_of_week == 'сб' and times.index(lesson.duration) > 3:
+                continue
+
             time_index = times.index(lesson.duration)
 
             lesson_row = magic_var[dw_index] + time_index * 2
@@ -34,9 +33,8 @@ def paint_cells(sheet, lessons, color, magic_var, column, flag_for_groups=False)
                 sheet[column + str(lesson_row)].fill = PatternFill("solid", start_color=color)
                 sheet[column + str(lesson_row + 1)].fill = PatternFill("solid", start_color=color)
         except:
-            write_in_file('some_files/log.txt', f'{lesson.cell.coordinate, lesson.cell.value} is a lesson after 19:30')
+            # write_in_file('some_files/log.txt', f'{lesson.cell.coordinate, lesson.cell.value} is a lesson after 19:30')
             continue
-
 
 
 class Lesson:
@@ -48,12 +46,4 @@ class Lesson:
 
 
 if __name__ == '__main__':
-    groups = [
-        ['Илья Г.', '09-933 (1)'],
-        ['Данил',   '09-933 (1)'],
-        ['Ахад',    '09-063 (1)'],
-        ['Максим',  '09-012 (1)'],
-        ['Илья К.', '09-012 (1)'],
-    ]
-    with open('some_files/workers.pickle', 'wb') as f:
-        pickle.dump(groups, f)
+    print('support_file!')
