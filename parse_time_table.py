@@ -9,7 +9,10 @@ pattern_to_finde_class_number = r'ауд. (\d+)'
 short_list_day_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 list_day_of_week = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота"]
 patter_to_define_time = r'^(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])-(([0-1]?[0-9]|2[0-3])(\.|:)[0-5][0-9])$'
-
+UP_LEFT_POINT = 'A15'
+DOWN_RIGHT_POINT = 'FR103'
+INSTITUTE_PREFIX = '09'
+pattern_to_detect_group_number = INSTITUTE_PREFIX+r'-\d{3}( \(\d\))?'
 
 
 def write_in_file(path, var):
@@ -96,8 +99,7 @@ class Parser:
         groups = []
         time_rows = {}
 
-        # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
-        for work_time, cellObj in enumerate(self.sheet['A20':'FV108']):
+        for work_time, cellObj in enumerate(self.sheet[UP_LEFT_POINT:DOWN_RIGHT_POINT]):
             for cell in cellObj:
                 value = str(cell.value).lower().strip()
 
@@ -105,7 +107,7 @@ class Parser:
                     days_of_week.append(cell)
 
                 # CAN BE CHANGE IN NEW VERSION TIMETABLE!!!!!!!!!!!!!
-                elif value[0:2] == '09':
+                elif value[0:2] == INSTITUTE_PREFIX:
                     groups.append(cell)
 
                 elif re.search(patter_to_define_time, value):
@@ -136,7 +138,12 @@ class Parser:
 
         for i in groups:
             column = get_column_from_coordinate(i.coordinate)
-            groups_columns[i.value.lower().strip()] = column
+
+            # Validate the key which is the group number
+            key = i.value.lower().strip()
+            key = re.search(pattern_to_detect_group_number, key).group(0)
+
+            groups_columns[key] = column
 
         # Delete no important from data to create table with lessons
 
@@ -212,4 +219,3 @@ class Parser:
                 else:
                     classrooms[classroom] = []
         return classrooms
-

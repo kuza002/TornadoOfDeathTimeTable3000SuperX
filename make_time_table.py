@@ -8,8 +8,8 @@ import openpyxl
 import numpy as np
 
 days_of_week = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
-times = ['8.30-10.00', '10.10-11.40', '11.50-13.20', '14.00-15.30', '15.40-17.10', '17.50-19.20']
-our_classrooms = ['802','804','808','809','810','811','910','1009', '1111', '1112', '1206']
+times = ['8.30-10.00', '10.10-11.40', '12.10-13.40', '13.50-15.20', '15.50-17.20', '17.30-19.00', '19.10-20.40']
+our_classrooms = ['802', '804', '808', '809', '810', '811', '910', '1009', '1111', '1112', '1206']
 classrooms_columns = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
 good_color = 'ccffcc'
 bad_color = 'ffadd6'
@@ -32,19 +32,20 @@ def paint_cells(sheet, lessons, color, magic_var, column):
             sheet[column + str(lesson_row)].fill = PatternFill("solid", start_color=color)
             sheet[column + str(lesson_row + 1)].fill = PatternFill("solid", start_color=color)
 
+
 # Get data from timetable
-# data = Parser()
+data = Parser()
 
-# with open('filename.pickle', 'wb') as output:
-#     pickle.dump(data, output)
+with open('filename.pickle', 'wb') as output:
+    pickle.dump(data, output)
 
-with open('filename.pickle', 'rb') as handle:
-    data = pickle.load(handle)
+# with open('filename.pickle', 'rb') as handle:
+#     data = pickle.load(handle)
 
 # groups = input("Введите нужные группы через запятую с пробелом, точно как в расписании: ") \
 #     .strip().lower().split(", ")
 
-groups = ['09-933 (1)', '09-833 (1)']
+groups = ['09-933 (1)', '09-012 (1)', '09-022 (2)', '09-145', '09-125 (2)']
 
 # Getting lessons for all groups
 
